@@ -1,0 +1,90 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ LDRB R5, [R1]                  @ ch = byte[address]; 
+WhileLoop:                      @ while (ch != 0)
+ CMP R5, #0                     @ {
+ BEQ EndWhileLoop               @ if (ch >= 'a' && ch <= 'z')
+ CMP R5, #'A'                   @ {
+ BLO EndIfLower                 
+ CMP R5, #'Z'                   
+ BHI EndIfLower                 
+ ADD R5, R5, #0x20              @ ch = ch - 0x20;
+ STRB R5, [R1]                  @ byte[address] = ch;
+EndIfLower:                     @ }
+
+ ADD R1, R1, #1                 @ address = address + 1;
+ ADD R6, R6, #1                 @ counter = counter + 1;
+ LDRB R5, [R1]                  @ ch = byte[address];
+ B WhileLoop                    @ }
+EndWhileLoop:                  
+ ADD R8, R6, #0                 @ string lenght = counter + 0
+ SUB R1, R1, R6                 @ start of the string = string - counter
+ LDRB R5, [R1]                  @ ch = byte[address];
+ 
+ LDRB R3, [R2]                  @ ch = byte[address];
+WhileLoop2:                     
+ CMP R3, #0                     @ while (ch != 0)
+ BEQ EndWhileLoop2              @ {
+ CMP R3, #'A'                   @ if (ch >= 'a' && ch <= 'z')
+ BLO EndIfLower2                @ {
+ CMP R3, #'Z'                   
+ BHI EndIfLower2                
+ ADD R3, R3, #0x20              @ ch = ch - 0x20;
+ STRB R3, [R2]                  @ byte[address] = ch
+EndIfLower2:                    @ }
+ 
+ ADD R2, R2, #1                 @ address = address + 1;
+ ADD R7, R7, #1                 @ counter =counter + 1
+ LDRB R3, [R2]                  @ ch = byte[address];
+ B WhileLoop2                   @ }
+EndWhileLoop2:                  
+ ADD R9, R7, #0                 @ string lenght = counter + 0
+ SUB R2, R2, R7                 @ start of the string = string - counter
+ LDRB R3, [R2]                  @ ch = byte[address];
+
+
+ CMP R9, R8                   
+ BNE NotAnagram                 
+
+Checker:                        @ while (ch != 0)
+ CMP R5, R3                     @ {
+ BEQ Getnew                     @ if(Byte[address1] != Byte[address2])
+ ADD R4, R4, #1                 @ counter = counter + 1  
+ ADD R2, R2, #1                 @ address2 = address] + 1 
+ LDRB R3, [R2]                  @ ch = byte[address]; 
+ CMP R5, R3                     @ if(Byte[address2] = 0)
+ BEQ  Getnew                    @ {
+ CMP R3, #0                      
+ BEQ NotAnagram                 @ {
+ B Checker                      @ }
+
+Getnew:                         
+ ADD R1, R1, #1                 @ address = address + 1;
+ LDRB R5, [R1]                  @ ch = byte[address];
+ MOV R3, #'-'                   @ exterminate the letter
+ STRB R3, [R2]                  @ byte[address] = ch;
+ SUB R2, R2, R4                 @ start of the string = string - counter
+ MOV R4, #0                     @ counter = 0
+ LDRB R3, [R2]                  @ ch = byte[address];
+ CMP R5, #0                     
+ BEQ IsAnagram                  @ {
+ B Checker                      @ }(start the loop again)
+
+NotAnagram:                     @ 
+ MOV R0, #0                     @ R0 = 0
+ B Exit                         @ }
+
+IsAnagram:                      
+ MOV R0, #1                     @ R0 = 1
+
+Exit:                           @ }
+
+End_Main:
+  BX    lr
+
+  .end
