@@ -1,0 +1,48 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ LDR R6, =0              @ mode =0
+ LDR R7, =0              @ modecount =0
+
+Whileloop:               @ while
+ CMP R3, R2              @ j1 < total
+ BGT EndWhileLoop        @ {
+ LDRB R9, [R1]           @ val 1 = word[add] 
+ LDR R8, =0              @ total count=0
+ ADD R5, R1, #4          @ address = address + 4 
+ ADD R4, R3, #1          @ j2 = j1 + 1
+
+While1:                  @ while
+ CMP R4, R2              @ j2 < total
+ BGT EndWhileLoop1       @ {
+ LDRB R10, [R5]          @ val 2 = word[address2]
+ CMP R9, R10             @ if(val 1 = val 2)
+ BNE EndIf               @ {
+ ADD R8, R8, #1          @ count = count + 1
+ EndIf:                  @ }
+ ADD R5, R5, #4          @ address' = address' + 4
+ ADD R4, R4, #1          @ j2 = j2 + 1
+ B While1                @ }
+
+EndWhileLoop1:           @
+ CMP R8, R7              @ if(count > modecount)
+ BLT EndIf1              @ {
+ MOV R6, R9              @ mode = val 1
+ MOV R7, R8              @ modecount = count 
+
+EndIf1:                  @ }
+ ADD R1, R1, #4          @ address = address + 4
+ ADD R3, R3, #1          @ j1 = j1 + 1
+ B Whileloop             @ }
+
+EndWhileLoop:            @
+ MOV R0, R6              @ r0 = mode
+
+End_Main:
+  BX    lr
+
+.end
