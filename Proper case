@@ -1,0 +1,64 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ LDRB R3, [R1]           @ ch = byte [address]
+ CMP R3, #0              @ if (ch !=0)
+ BEQ EndWhile1           @ {
+ CMP R3, #'a'            @ if ( ch >= 'a' && ch <=z)
+ BLO EndIfLwr            @ {
+ CMP R3, #'z'             
+ BHI EndIfLwr             
+ SUB R3, R3, #0x20       @ ch = ch - 0x20
+ STRB R3, [R1]           @ byte[address] = ch
+ EndIfLwr:               @ }
+ ADD R1, R1, #1          @ address = address + 1
+ EndWhile1:              @ }
+
+While:                    
+ LDRB R3, [R1]           @ ch = byte[address]
+ CMP R3, #0              @ while ( ch != 0)
+ BEQ EndWhile            @ {
+ 
+ CMP R3, #' '            @ if ( ch = ' ')
+ BNE IfSpace             @ {
+ STRB R3, [R1]           @ byte[address] = ch
+ ADD R1, R1, #1          @ address = address + 1
+ LDRB R3, [R1]           @ ch = byte[address]
+ 
+ CMP R3, #'a'            @ if( ch >= 'a' && ch <= 'z')
+ BLO EndIfLwer           @ {
+ 
+ CMP R3, #'z'            
+ BHI EndIfLwer           
+ SUB R3, R3, #0x20       @ ch = ch - 0x20
+ STRB R3, [R1]           @ byte[address] = ch
+ EndIfLwer:              @ }
+ ADD R1, R1, #1          @ address = address + 1 
+ B While                 @ branching it back to while
+ IfSpace:                @ }
+
+ CMP R3, #' '            @ if (ch != ' ' && ch >= 'A' && ch <= 'Z')
+ BEQ IfNotEqSpace        @{
+
+ CMP R3, #'A'            
+ BLO EndIfLwor           
+ 
+ CMP R3, #'Z'            
+ BHI EndIfLwor           
+ ADD R3, R3, 0x20        @ ch = ch + 0x20
+ STRB R3, [R1]           @ byte[address] = ch
+ EndIfLwor:              @ }
+ ADD R1, R1, #1          @ address = address + 1
+ B While                 @ }
+
+ IfNotEqSpace:           @ }
+ EndWhile:               @ }
+
+End_Main:
+  BX    lr
+
+  .end
