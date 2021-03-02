@@ -1,0 +1,36 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ LDR R3,=2                                     // We assign R3 value 2
+ CMP R1,#0                                    // then compare R1which is the input with 0
+ BEQ NotPrime                                // branch if R1 = 0
+ CMP R1,#1                                  // then comparing R1 and 1 if R1 is not equal to 0
+ BEQ NotPrime                              // branch if R1 is not = 1
+ MOV R0,#0                                // moving 0 to R0 if R1 is not = to 1
+
+While:                                  // while loop
+ CMP R1,R3                             // comparing R1 and R3
+ BEQ Prime                            // branch if R1 and R3 are same
+ UDIV R2,R1,R3                       // dividing R1 and and R3 and stroing the value in R2 (if R1 not = 3)
+ MUL R2,R2,R3                       // multiplying R2 and R3 and and storing it in R2
+ CMP R1,R2                         // comparing R1 and R2
+ BEQ NotPrime                     // branch if R1 = R2        
+ ADD R3,R3,#1                    // adding 1 to R3 and storing it in R3
+ B While                        // while loop ends
+ //(the loop finishes when R3 = the input)
+
+Prime:                              // branch condition where R1=R3
+ MOV R0,#1                         // putting 1 in R0
+ B End                            // else {
+NotPrime:                        // tells if R1 = 0 or 1 or R2
+ MOV R0,#0                      // putting 0 in R0
+End:
+
+End_Main:
+  BX    lr
+
+  .end
