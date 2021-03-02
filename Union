@@ -1,0 +1,126 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ LDR R3,[R0]                                 @ ch3 = setC[address]
+ MOV R13, R0                                 @ initializing temporary variable of inital address
+ 
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ MOV R12, R1                                 @ initializing temporary variable of inital address
+ ADD R12, R12, #4                            @ address = address + 4;  
+ 
+ LDR R5, [R2]                                @ ch2 = setB[address]
+ 
+ MOV R7, R4                                  @ size of setA R7 = R4
+ MOV R8, R5                                  @ size of setB R8 = R5
+ MOV R3, #0                               
+
+ CMP R7, #0                                  
+ BEQ UnionOfB                                @ if (set A = 0[null set] && set B = 0(null set) 
+ CMP R8, #0                                  @ {
+ BEQ UnionOfA                                
+ B Continue                                  
+
+UnionOfB:                                  
+ LDR R3,[R0]                                 @ ch3 = setC[address]
+ LDR R5, [R2]                                @ ch2 = setB[address]
+ CMP R9, R8                                
+ BGT Exit                                  
+ MOV R3, R5                                
+ STR R3, [R0]                                @ setC[address] = ch3
+ ADD R0, R0, #4                              @ address = address + 4;
+ ADD R2, R2, #4                              @ address = address + 4;
+ ADD R9, R9, #1                              @ counter = counter + 1;
+ B UnionOfB                                
+
+UnionOfA:                                    @ Here we copy A to set C and say that A is the union
+ LDR R3,[R0]                                 @ ch3 = setC[address]
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ CMP R9, R7                                
+ BGT Exit                                  
+ MOV R3, R4                                
+ STR R3, [R0]                              
+ ADD R0, R0, #4                              @ address = address + 4;
+ ADD R1, R1, #4                              @ address = address + 4;
+ ADD R9, R9, #1                              @ counter = counter + 1;
+ B UnionOfA 
+
+Continue:                                    @ Continue label
+ ADD R0, R0, #4                              @ if no null sets, we continue
+ ADD R1, R1, #4                              @ address = address + 4;
+ ADD R2, R2, #4                              @ address = address + 4;
+
+ LDR R5, [R2]                                @ ch2 = setB[address]
+ MOV R9, #0                               
+ MOV R10, #0                              
+
+CloneToSetC:                                 @ label for copying setA to setC
+ LDR R3,[R0]                                 @ ch3 = setC[address]                               
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ CMP R9, R7                                  @ comparing counter to size of the set
+ BGE EndCloneToSetC                          @ finish the copy process
+ MOV R3, R4                             
+ STR R3, [R0]                                @ store R3 in memory
+ ADD R0, R0, #4                              @ address = address + 4;
+ ADD R1, R1, #4                              @ address = address + 4;
+ ADD R9, R9, #1                              @ counter = counter + 1;
+ LDR R3, [R0]                                @ ch3 = setC[address]
+ B CloneToSetC                               @ continue loop
+
+EndCloneToSetC:                              @ after cloning setC
+ MOV R9, #0                                  @ counter = 0
+ LDR R3,[R0]                                 @ ch3 = setC[address]
+ MOV R1, R12                                 @ reset memory to initial memory location
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ LDR R5, [R2]                                @ ch2 = setB[address]
+
+CheckSetBLoop:                               @ loop for going through setB
+ MOV R9, #0                                  @ counter = 0
+ MOV R1, R12                                 @ resetting setA address to the beginning
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ CMP R10, R8                                 @ comparing the counter with size of setB
+ BGE ExitCheckSetBLoop                       @ if greater than or equal to, 
+ LDR R5, [R2]                                @ ch2 = setB[address]
+
+CheckSetALoop:                               @ loop for going through setA
+ LDR R3,[R0]                                 @ ch3 = setC[address]
+ LDR R4, [R1]                                @ ch1 = setA[address]
+ LDR R5, [R2]                                @ ch2 = setB[address]  
+ CMP R9, R7                                  @ if (uncommon number) [we add it to the union set]
+ BGE UncommonNumber                      
+ CMP R5, R4                                  @ if (common numbers in SetA and SetB)
+ BEQ CommonNumber                        
+ ADD R9, R9, #1                              @ counter = counter + 1        
+ ADD R1, R1, #4                              @ move to next location
+ B CheckSetALoop                             @ continue loop
+
+CommonNumber:                                @ if common number
+ ADD R2, R2, #4                              @ address = address + 4;
+ LDR R5, [R2]                                @ ch2 = setB[address]
+ ADD R10, R10, #1                            @ address = address + 1;     
+ B CheckSetBLoop                    
+
+UncommonNumber:                              @ if uncommon number
+ MOV R3, R5                                
+ STR R3, [R0]                                @ setC[address] = ch3 
+ ADD R2, R2, #4                              @ address = address + 4;
+ LDR R5, [R2]                                @ ch2 = setB[address]
+ ADD R0, R0, #4                              @ address = address + 4;
+ ADD R10, R10, #1                            @ address = address + 4;
+ ADD R11, R11, #1                            @ counter = counter + 1;
+ B CheckSetBLoop                             @ continue loop
+
+ExitCheckSetBLoop:                          
+ LDR R3, [R13]                               @ move location of setC to the beginning
+ ADD R3, R7, R11                             @ R3 = R7 + R11 (size of union set)
+ STR R3, [R13]                               @ setC[address] = ch3
+
+Exit:                                        @ end program label
+
+End_Main:
+  BX    lr
+
+  .end
