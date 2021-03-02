@@ -1,0 +1,29 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+  .section  .text
+
+  .type     Init_Test, %function
+
+Main:
+
+While:
+  CMP R2, R3
+  BEQ EndWh
+  BLE IsLess
+  SUB R2, R2, R3
+  BGT While
+IsLess:
+  SUB R3, R3, R2
+  B While
+
+EndWh:
+  MOV R0, R2
+
+
+End_Main:
+  BX    lr
+
+  .end
