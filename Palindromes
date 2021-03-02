@@ -1,0 +1,136 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+Main:
+
+ MOV R6, #0
+ MOV R7, #0
+ MOV R9, #0
+ MOV R4, R1
+
+while:                      
+ LDRB R2,[R4]              
+ CMP R2,#0                     
+ BEQ NotZero                    
+ ADD R6,R6,#1
+ ADD R4,R4,#1
+ B    while
+
+NotZero:
+ MOV R7, #0
+ MOV R9, #0
+ MOV R4, R1
+ MOV R2, #0
+
+while1:                      
+ LDRB R2,[R4]                 
+ CMP R2,#0                     
+ BEQ NotZero1                    
+ CMP R2, #'A'
+ BLO Higher
+ CMP R2, #'z'
+ BHI Higher   
+ ADD R10,R10,#1
+
+Higher:
+ ADD R4,R4,#1
+ B    while1
+ 
+NotZero1:
+ MOV R2, #0
+ MOV R4, #0
+ MOV R9, #2
+ MOV R4, R1
+ MOV R5, R1
+ LDRB R2,[R4]
+ SUB R6, R6, #1
+ UDIV R8, R10, R9
+ ADD R5, R5, R6
+ LDRB R3, [R5]
+
+IFEQUAL:
+ MOV R0, #0
+
+WHILE4:
+ LDRB R3, [R5]
+ LDRB R2, [R4]
+
+WHILE:
+ CMP R2, #' '
+ BNE IFR2ISSPACE
+ ADD R4, R4, #1
+ LDRB R2, [R4]
+
+IFR2ISSPACE:
+ CMP R3, #' '
+ BNE IFR5ISSPACE
+ SUB R5, R5, #1
+ LDRB R3, [R5] 
+
+IFR5ISSPACE:
+ CMP R3, #'A'
+ BLO NotHigher
+ CMP R3, #'Z'
+ BHI NotHigher
+ ADD R3, R3, #0x20
+ CMP R3, #'a'
+ BHS NotHigher
+ CMP R3, #'z'
+ BLE NotHigher
+ ADD R3, R3, R6
+ ADD R4, R4, #1
+ LDRB R2, [R4]
+ B WHILE
+
+NotHigher:
+ CMP R7, R8
+ BEQ ENDWHILE
+
+WHILE2:
+ CMP R2, #0
+ BEQ IFNOTEQUALTOZERO
+ CMP R2, #'a'
+ BLO HIGHERTHANCAPITALA
+ CMP R2, #'z'
+ BHI HIGHERTHANCAPITALA
+ CMP R3, #0
+ BEQ IFNOTEQUALTOZERO
+ 
+WHILE3:
+ CMP R3, R2
+ BNE IFNOTEQUALTOZERO
+ ADD R4, R4, #1
+ SUB R5, R5, #1
+ ADD R7, R7, #1
+ B WHILE4
+ B  WHILE3
+
+HIGHERTHANCAPITALA:
+
+WHILELOOP:
+ ADD R2, R2, #0x20
+ CMP R2, #'a'
+ BHS NotHigher
+ CMP R2, #'z'
+ BLE NotHigher
+ SUB R2, R2, #1
+ ADD R4, R4, #1
+ LDRB R2, [R4]
+ B WHILELOOP
+ B WHILE2
+
+ENDWHILE:
+ MOV R0, #1
+ B ELSE
+
+IFNOTEQUALTOZERO:
+ MOV R0,#0
+
+ELSE: 
+
+End_Main:
+  BX    lr
+
+  .end
