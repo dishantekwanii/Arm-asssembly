@@ -1,0 +1,50 @@
+  .syntax unified
+  .cpu cortex-m4
+  .thumb
+  .global  Main
+
+  .section  .text
+
+  .type     Init_Test, %function
+
+Main:
+
+
+  MOV         R2, #1
+  MOV         R4, #3
+ While:      
+  CMP         R4, #0
+  BEQ         EndWh
+  MUL         R2, R2, R1
+  SUB         R4, R4, #1
+  B           While
+ EndWh: 
+
+
+  MOV         R5, #1
+  MOV         R7, #2
+ aWhile:      
+  CMP         R7, #0
+  BEQ         aEndWh
+  MUL         R5, R5, R1
+  SUB         R7, R7, #1
+  B           aWhile
+ aEndWh: 
+  MOV         R9, #4
+  MUL         R5, R5, R9
+
+
+  MOV         R9, #3 
+  MUL         R8, R1, R9
+
+
+  MOV         R0, #0
+  SUB         R2, R2, R5
+  ADD         R0, R2, R8 
+  ADD         R0, R0, #8
+
+
+End_Main:
+  BX    lr
+
+  .end
