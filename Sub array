@@ -1,0 +1,85 @@
+  .syntax unified
+  .cpu cortex-m4
+  .fpu softvfp
+  .thumb
+  .global  Main
+
+Main:
+
+Value:				                   @ boolean Value(BigArray, SmallArray, int LargeSize, int SmallSize){
+	SUB	R3, R1, R2		               @ int JUMP = Bigsize - Smallsize          
+	MUL	R4, R1, R1		               @ int noOfElementsLarge = N * N          
+	MUL	R5, R2, R2		               @ int noOfElementsSmall = M * M        
+	LDR	R6, =0						   @
+	PUSH	{lr}                       @
+			
+OuterLoop:		      		           @ for(int i = 0; i < noOfElementsLarge; i++){
+	CMP	R6, R4			               @
+	BHS	endOuterLoop		           @
+	MOV	R7, R6			               @ int temp_i = i; stores the starting address of an array in the memory, and down in the words (fully descending)
+	LDR	R8, =0			               @ int count = 0;
+	LDR	R9, =0			               @
+	BL  SubTrue		                   @ CheckingTheMatch(index)          
+	PUSH	{R4}					   @
+
+InnerLoop:				     	       @
+	CMP	R9, R5			               @ for(int j = 0; j < noOfElementsSmall; j++){
+	BHS	endInnerLoop		           @ checking the match 			
+	LDR	R10, [R11, R9, LSL #2] 	       @ int Smaller = SMALL_A[j];
+	LDR	R12, [R0, R7, LSL #2]	       @ int Larger = LARGE_A[temp_i];
+	ADD	R7, #1			               @ temp_i++;
+	CMP	R10, R12		               @ if(Smaller == Larger){
+	BNE	endInnerLoop			       @ count++;
+	ADD	R8, #1			               @
+	CMP	R8, R2			               @ if(count == M)
+	BNE Condition      	               @
+	ADD	R7, R3			               @ temp_i += JUMP
+	LDR	R8, =0			               @ 
+
+Condition:				  	           @ If it reaches the side of the Smaller array, we have to Jump a few indexes in the big array
+	SUB	R4, R5, #1                     @
+	CMP	R9, R4			               @ if(j == noOfElementsSmall - 1)
+	BNE	PostInc			               @ return true;
+	LDR	R0, =1			               @ }
+	POP		{R4}			           @ if it reaches the index of the Smaller array then it should be a Subarray
+	B   true			               @ }
+
+PostInc:	                           @
+	ADD	R9, #1                         @
+	B   InnerLoop			           @
+
+endInnerLoop:					       @
+	POP	{R4}			               @ }
+	ADD	R6, #1			               @
+	B	OuterLoop			           @
+
+endOuterLoop:					       @
+	LDR	R0, =0			               @ returns false
+
+true:					               @ }	
+	POP		{lr}                       @
+	BX	lr                             @
+	
+SubTrue:		    	               @ CheckingTheMatch(index)
+	PUSH		{R3-R5, R7-R12, lr}    @ checking for overlap 
+	LDR	R3, =1			               @
+
+Loop2:					               @
+	CMP	R3, R1			               @ for(int i = 1; i <= 7; i++){
+	BHI	endLoop2	                   @	
+	MUL	R4, R3, R1         	           @ int LastPositon = i*M - N;
+	SUB	R4, R2			               @
+	ADD	R3, #1	                       @
+	CMP	R6, R4		                   @ if(index == LastPositon){
+	BNE	Loop2			               @ index += (M + 1);
+	ADD	R6, R2      	               @ break;
+	ADD	R6, #1		                   @ }
+
+endLoop2:				               @ }
+	LDR R0, =1                         @
+	POP	{R3-R5, R7-R12, lr}	           @
+	BX	lr			                   @
+
+End_Main:
+	BX    lr
+
